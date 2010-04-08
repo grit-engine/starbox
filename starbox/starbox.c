@@ -696,6 +696,7 @@ post_process_faces(float **faces, int face_dim) {
             error(0, 0, "couldn't allocate memory for faces.\n");
             return;
         }
+        // started off as a gaussian but was tweaked to look more appealing...
         float gaussian[5][5] = {
             { 0,  4,  7,  4,  0 },
             { 1,  8, 36,  8,  1 },
