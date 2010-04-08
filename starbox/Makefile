@@ -1,22 +1,23 @@
 starbox: starbox.c
 	gcc -std=c99 -pedantic -O2 -finline-functions -fomit-frame-pointer -march=prescott $(CFLAGS) $< -lm $(LDFLAGS) -o $@
 
-test:
+test: starbox starfile.csv
 	./starbox starfile.csv -f 1024 -d 23.5 -r -90 -g 3 -S 8
+	touch test
 
 %.png: %.pnm
 	pnmtopng $< > $@
 
-pngs:
-	$(MAKE) test
+pngs: test
 	$(MAKE) face0.png face1.png face2.png face3.png face4.png face5.png
+	touch pngs
 
 clean:
-	rm -f *.png *.pnm
+	rm -f *.png *.pnm pngs test
 
 squeakyclean: clean
 	rm -f starbox
 
-.PHONY: test pngs clean squeakyclean
+.PHONY: clean squeakyclean
 
 # vim: ts=8:sw=8:noet
