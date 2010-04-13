@@ -698,29 +698,29 @@ post_process_faces(float **faces, int face_dim) {
         }
         // started off as a gaussian but was tweaked to look more appealing...
         float gaussian[5][5] = {
-            { 0,  4,  7,  4,  0 },
-            { 1,  8, 36,  8,  1 },
-            { 1, 16, 91, 16,  1 },
-            { 1,  8, 36,  8,  1 },
-            { 0,  4,  7,  4,  0 },
+            {450, 26,  7,  0,  0 },
+            {26, 16,  4,  0,  0 },
+            { 7,  4,  1,  0,  0 },
+            { 0,  0,  0,  0,  0 },
+            { 0,  0,  0,  0,  0 },
         };
         float total = 0.0;
-        for (int gy=-2 ; gy<=2 ; ++gy) {
-            for (int gx=-2 ; gx<=2 ; ++gx) {
-                total += gaussian[gy+2][gx+2];
+        for (int gy=-4 ; gy<=4 ; ++gy) {
+            for (int gx=-4 ; gx<=4 ; ++gx) {
+                int gy_ = gy>0 ? gy : -gy;
+                int gx_ = gx>0 ? gx : -gx;
+                total += gaussian[gy_][gx_];
             }
         }
         
         for (int y=0 ; y<face_dim ; ++y) {
             for (int x=0 ; x<face_dim ; ++x) {
                 float v = 0;
-                for (int gy=-2 ; gy<=2 ; ++gy) {
-                    for (int gx=-2 ; gx<=2 ; ++gx) {
-                        assert(gx+2 >= 0);
-                        assert(gy+2 >= 0);
-                        assert(gx+2 < 5);
-                        assert(gy+2 < 5);
-                        v += (gaussian[gy+2][gx+2]) * get(src, face_dim, x+gx, y+gy);
+                for (int gy=-4 ; gy<=4 ; ++gy) {
+                    for (int gx=-4 ; gx<=4 ; ++gx) {
+                        int gy_ = gy>0 ? gy : -gy;
+                        int gx_ = gx>0 ? gx : -gx;
+                        v += (gaussian[gy_][gx_]) * get(src, face_dim, x+gx, y+gy);
                     }
                 }
                 dst[y*face_dim + x] = v/total;
