@@ -27,7 +27,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <error.h>
 #include <errno.h>
 #include <math.h>
 #include <assert.h>
@@ -48,6 +47,10 @@
 #define FACE_BOTTOM 5
 
 #define MAG_LOG_BASE 2.512
+
+#ifndef M_PI
+#define M_PI 3.1415926535898
+#endif
 
 
 int verbose = 0;
@@ -210,18 +213,18 @@ read_star_line(FILE *file, double *ra, double *dec, double *mag, int line_no,
     *ra = ra_24 * 15;
 
     if (*ra < 0 || *ra >= 360) {
-        error(0, 0, "line %d: invalid right ascension %f (must be 0 <= x < 24)\n", line_no, ra_24);
+        fprintf(stderr,"line %d: invalid right ascension %f (must be 0 <= x < 24)\n", line_no, ra_24);
         return -1;
     }
     if (*dec < -90 || *dec > 90) {
-        error(0, 0, "line %d: invalid declination %f (must be -90 <= x <= 90)\n", line_no, *dec);
+        fprintf(stderr,"line %d: invalid declination %f (must be -90 <= x <= 90)\n", line_no, *dec);
         return -1;
     }
 
     return 1;
 
 malformed:
-    error(0, 0, "line %d malformed.\n", line_no);
+    fprintf(stderr,"line %d malformed.\n", line_no);
 
     /* Read to the next newline */
     while ((c = fgetc(file)) != '\n' && c != EOF);
@@ -509,7 +512,7 @@ alloc_faces(float **faces, int face_dim) {
     for (f = 0; f < 6; ++f) {
         faces[f] = malloc(face_dim * face_dim * sizeof(float));
         if (faces[f] == NULL) {
-            error(0, 0, "couldn't allocate memory for faces.\n");
+            fprintf(stderr,"couldn't allocate memory for faces.\n");
             return -1;
         }
         memset(faces[f], 0, face_dim * face_dim * sizeof(float));
@@ -607,7 +610,8 @@ output_faces(float **faces, int face_dim, int output_format) {
 
             file = fopen(filename, "w");
             if (file == NULL) {
-                error(0, errno, "couldn't open %s for writing", filename);
+                fprintf(stderr,"couldn't open %s for writing\n", filename);
+                perror("error was");
             }
             else {
                 float *face;
@@ -629,7 +633,8 @@ output_faces(float **faces, int face_dim, int output_format) {
                 }
 
                 if (fclose(file) == EOF) {
-                    error(0, errno, "couldn't close %s", filename);
+                    fprintf(stderr,"couldn't close %s\n", filename);
+                    perror("error was");
                     ret = 1;
                 }
             }
@@ -640,7 +645,7 @@ output_faces(float **faces, int face_dim, int output_format) {
         FILE *file = fopen(filename, "w");
 
         if (file == NULL) {
-            error(0, errno, "Couldn't open starbox.h for writing");
+            perror("Couldn't open starbox.h for writing");
         }
         else {
             int f;
@@ -668,7 +673,8 @@ output_faces(float **faces, int face_dim, int output_format) {
             }
             fprintf(file, "#endif\n");
             if (fclose(file) == EOF) {
-                error(0, errno, "couldn't close %s", filename);
+                fprintf(stderr,"couldn't close %s\n", filename);
+                perror("error was");
                 ret = 1;
             }
         }
@@ -693,7 +699,7 @@ post_process_faces(float **faces, int face_dim) {
         float *src = faces[i];
         float *dst = malloc(face_dim * face_dim * sizeof(float));
         if (dst == NULL) {
-            error(0, 0, "couldn't allocate memory for faces.\n");
+            fprintf(stderr,"couldn't allocate memory for faces.\n");
             return;
         }
         // started off as a gaussian but was tweaked to look more appealing...
@@ -814,35 +820,42 @@ int main(int argc, char **argv) {
             case 'F':
                 if (sscanf(optarg, "%d , %d , %d", &ra_field,
                         &dec_field, &mag_field) < 3) {
-                    error(1, 0, "-F requires three comma-separated field numbers.");
+                    fprintf(stderr, "-F requires three comma-separated field numbers.\n");
+                   exit(1);
                 }
                 if (ra_field < 1 || dec_field < 1 || mag_field < 1)
-                    error(1, 0, "-F requires three positive field numbers.");
+                    fprintf(stderr, "-F requires three positive field numbers.\n");
+                   exit(1);
                 break;
             case 'S':
                 if (sscanf(optarg, "%f", &scale_factor) < 1) {
-                    error(1, 0, "-S requires a numeric argument");
+                    fprintf(stderr, "-S requires a numeric argument.\n");
+                   exit(1);
                 }
                 break;
             case 'C':
                 if (sscanf(optarg, "%lf", &cutoff_mag) < 1) {
-                    error(1, 0, "-C requires a numeric argument");
+                    fprintf(stderr, "-C requires a numeric argument.\n");
+                   exit(1);
                 }
                 break;
             case 'f':
                 if (sscanf(optarg, "%d", &face_dim) < 1 ||
                         face_dim <= 0) {
-                    error(1, 0, "-f requires a positive argument");
+                    fprintf(stderr, "-f requires a positive argument.\n");
+                   exit(1);
                 }
                 break;
             case 'd':
                 if (sscanf(optarg, "%lf", &dec_delta) < 1 || dec_delta < -180 || dec_delta > 180) {
-                    error(1, 0, "-d requires a numeric argument between -180 and 180.");
+                    fprintf(stderr, "-d requires a numeric argument between -180 and 180.\n");
+                   exit(1);
                 }
                 break;
             case 'r':
                 if (sscanf(optarg, "%lf", &ra_delta) < 1 || ra_delta < -360 || ra_delta > 360) {
-                    error(1, 0, "-r requires a numeric argument between -360 and 360");
+                    fprintf(stderr, "-r requires a numeric argument between -360 and 360.\n");
+                   exit(1);
                 }
                 break;
             case 'h':
@@ -862,7 +875,8 @@ int main(int argc, char **argv) {
 
             case 'g':
                 if (sscanf(optarg, "%lf", &mid_mag) < 1) {
-                    error(1, 0, "-g requires a numeric argument.");
+                    fprintf(stderr,"-g requires a numeric argument.\n");
+                    exit(1);
                 }
                 break;
 
@@ -871,7 +885,8 @@ int main(int argc, char **argv) {
                 break;
 
             default:
-                error(1, 0, "Unknown option -%c\n", optopt);
+                fprintf(stderr,"Unknown option -%c\n", optopt);
+                exit(1);
         }
     }
 
@@ -887,13 +902,16 @@ int main(int argc, char **argv) {
         else {
             starfile = fopen(filename, "r");
             if (starfile == NULL) {
-                error(1, errno, "Couldn't open %s\n", filename);
+                fprintf(stderr, "Couldn't open %s\n", filename);
+                perror("error was:");
+               exit(1);
             }
         }
 
         /* Check for any junk options */
         if (optind + 1 < argc) {
-            error(1, 0, "Unexpected argument %s\n", argv[optind + 1]);
+            fprintf(stderr,"Unexpected argument %s\n", argv[optind + 1]);
+            exit(1);
         }
     }
 
