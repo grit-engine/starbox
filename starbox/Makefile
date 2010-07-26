@@ -12,7 +12,7 @@ pnms: starbox starfile.csv
 	pngtopnm -alpha $< > $@
 
 %u.pnm: %.pnm
-	pamflip -r180 $< > $@
+	pnmflip -r180 $< > $@
 
 TMP1:=/tmp/wtflol1.txt
 TMP2:=/tmp/wtflol2.txt
