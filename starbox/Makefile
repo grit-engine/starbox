@@ -1,8 +1,8 @@
 starbox: starbox.c
-	gcc -std=c99 -pedantic -O2 -finline-functions -fomit-frame-pointer -march=prescott $(CFLAGS) $< -lm $(LDFLAGS) -o $@
+	gcc -std=c99 -pedantic -O2 -finline-functions -fomit-frame-pointer -march=prescott -Wall -Wextra $(CFLAGS) $< -lm $(LDFLAGS) -o $@
 
 pnms: starbox starfile.csv
-	./starbox starfile.csv -f 1024 -d 23.5 -r -90 -g 1 -S 20
+	./starbox -f 1024 -d 23.5 -r 90 -g 1 -S 20 starfile.csv
 	touch pnms
 
 %.pnm: %.png
@@ -12,13 +12,14 @@ pnms: starbox starfile.csv
 	pngtopnm -alpha $< > $@
 
 %u.pnm: %.pnm
-	pnmrotate 90 $< | pnmrotate 90 > $@
+	pamflip -r180 $< > $@
 
-TMP1:=$(shell tempfile)
-TMP2:=$(shell tempfile)
+TMP1:=/tmp/wtflol1.txt
+TMP2:=/tmp/wtflol2.txt
 
 starfield.png: pnms starfield_template.pgm starfield_template.pnm
 	$(MAKE) face5u.pnm
+	#$(MAKE) face0u.pnm face1u.pnm face2u.pnm face3u.pnm face4u.pnm face5.pnm
 	cat starfield_template.pnm > $(TMP1)
 	cat $(TMP1) | pnmcomp -xoff 3072 -yoff    0 face0.pnm > $(TMP2)
 	cat $(TMP2) | pnmcomp -xoff 2048 -yoff    0 face1.pnm > $(TMP1)
