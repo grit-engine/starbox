@@ -1,3 +1,5 @@
+# (c) David Cunningham 2011, Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
+
 starbox: starbox.c
 	gcc -std=c99 -pedantic -O2 -finline-functions -fomit-frame-pointer -march=prescott -Wall -Wextra $(CFLAGS) $< -lm $(LDFLAGS) -o $@
 
